@@ -19,7 +19,7 @@
         <h1>💰 Smart Expense Tracker</h1>
 
         <div class="user-section">
-            <span>👤 {{ user }}</span>
+            <span>👤 {{ username }}</span>
             <a href="/logout" class="logout-btn">Logout</a>
         </div>
     </div>
@@ -38,8 +38,9 @@
         <!-- LEFT -->
         <div class="left">
 
-            <form method="POST" action="/add">
-                <input type="text" name="name" placeholder="Enter Expense" required>
+            <!-- FORM -->
+            <form action="/add" method="POST">
+                <input type="text" name="title" placeholder="Enter Expense" required>
                 <input type="number" name="amount" placeholder="Amount" required>
 
                 <select name="category">
@@ -53,17 +54,15 @@
                 <button type="submit" class="add-btn">+ Add Expense</button>
             </form>
 
+            <!-- EXPENSE LIST -->
             <h2>📋 Expenses</h2>
             <h3>Total: ₹{{ total }}</h3>
 
             <ul>
-                {% for expense in expenses %}
-                <li class="expense-item">
-                    <strong>{{ expense.title }}</strong> - ₹{{ expense.amount }}
-                    <br>
-                    <small>{{ expense.category }}</small>
-
-                    <a href="/delete/{{ expense.id }}" class="delete-btn">❌</a>
+                {% for exp in expenses %}
+                <li>
+                    <strong>{{ exp.title }}</strong> - ₹{{ exp.amount }} ({{ exp.category }})
+                    <a href="/delete/{{ exp.id }}" style="color:red;">❌</a>
                 </li>
                 {% endfor %}
             </ul>
@@ -80,28 +79,23 @@
 
 </div>
 
+<!-- SAFE DATA PASS -->
 <script>
-    const data = {
-        Food: {{ food_total }},
-        Travel: {{ travel_total }},
-        Shopping: {{ shopping_total }},
-        Other: {{ other_total }}
-    };
+    const data = JSON.parse('{{ {
+        "Food": food_total,
+        "Travel": travel_total,
+        "Shopping": shopping_total,
+        "Other": other_total
+    } | tojson | safe }}');
 
     const ctx = document.getElementById('expenseChart').getContext('2d');
 
     new Chart(ctx, {
         type: 'pie',
         data: {
-            labels: ['Food', 'Travel', 'Shopping', 'Other'],
+            labels: Object.keys(data),
             datasets: [{
-                data: [
-                    data.Food,
-                    data.Travel,
-                    data.Shopping,
-                    data.Other
-                ],
-                backgroundColor: ['#4CAF50', '#2196F3', '#FF7043', '#9E9E9E']
+                data: Object.values(data)
             }]
         }
     });

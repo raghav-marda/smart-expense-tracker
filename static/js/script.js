@@ -36,10 +36,16 @@ async function loadExpenses() {
         total += amount;
 
         const li = document.createElement("li");
+
+        // ✅ FIXED UI (same as original)
         li.innerHTML = `
-            ${exp.name} - ₹${amount} (${exp.category})
+            <div>
+                <strong>${exp.name} - ₹${amount}</strong><br>
+                <small style="color: gray;">${exp.category}</small>
+            </div>
             <button class="delete-btn" onclick="deleteExpense(${exp.id})">❌</button>
         `;
+
         list.appendChild(li);
 
         categoryData[exp.category] = (categoryData[exp.category] || 0) + amount;
@@ -64,7 +70,14 @@ function updateChart(data) {
         data: {
             labels: Object.keys(data),
             datasets: [{
-                data: Object.values(data)
+                data: Object.values(data),
+                // ✅ FIXED COLORS (match original)
+                backgroundColor: [
+                    "#4CAF50",  // Food
+                    "#ff7e5f",  // Shopping
+                    "#36A2EB",  // Travel
+                    "#999999"   // Other
+                ]
             }]
         }
     });

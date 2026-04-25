@@ -10,6 +10,7 @@
 
 <div class="container">
 
+    <!-- HEADER -->
     <div class="header">
         <h1>💰 Smart Expense Tracker</h1>
         <div>
@@ -29,32 +30,37 @@
 
     <div class="wrapper">
 
+        <!-- LEFT -->
         <div class="left">
 
+            <!-- FORM -->
             <form id="expense-form">
                 <input type="text" id="expense-name" placeholder="Enter Expense" required>
                 <input type="number" id="expense-amount" placeholder="Amount" required>
 
+                <!-- ✅ EMOJI FIX -->
                 <select id="category">
-                    <option value="Food">Food</option>
-                    <option value="Travel">Travel</option>
-                    <option value="Shopping">Shopping</option>
-                    <option value="Other">Other</option>
+                    <option value="Food">🍔 Food</option>
+                    <option value="Travel">✈️ Travel</option>
+                    <option value="Shopping">🛍️ Shopping</option>
+                    <option value="Other">📦 Other</option>
                 </select>
 
                 <br>
                 <button type="submit" class="add-btn">+ Add Expense</button>
             </form>
 
-            <h2>Expenses</h2>
+            <!-- EXPENSE LIST -->
+            <h2>📋 Expenses</h2>
             <h3>Total: ₹<span id="total">0</span></h3>
 
             <ul id="expense-list"></ul>
 
         </div>
 
+        <!-- RIGHT -->
         <div class="right">
-            <h2>Analytics</h2>
+            <h2>📊 Analytics</h2>
             <canvas id="expenseChart"></canvas>
         </div>
 

@@ -100,7 +100,12 @@ def home():
 
     conn.close()
 
-    return render_template('index.html', expenses=expenses, total=total, username=session['username'])
+    return render_template(
+        'index.html',
+        expenses=expenses,
+        total=total,
+        user=session['username']   # ✅ FIXED HERE
+    )
 
 
 # ---------------- ADD EXPENSE ---------------- #
@@ -109,7 +114,8 @@ def add_expense():
     if 'user_id' not in session:
         return redirect(url_for('login'))
 
-    title = request.form['title']
+    # ✅ FIXED (MATCHING HTML)
+    title = request.form['name']
     amount = float(request.form['amount'])
     category = request.form['category']
 
@@ -123,6 +129,8 @@ def add_expense():
 
     conn.commit()
     conn.close()
+
+    flash("Expense Added Successfully!", "success")
 
     return redirect(url_for('home'))
 
@@ -147,6 +155,6 @@ def logout():
     return redirect(url_for('login'))
 
 
-# ---------------- RUN APP (IMPORTANT FOR DEPLOY) ---------------- #
+# ---------------- RUN APP ---------------- #
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))

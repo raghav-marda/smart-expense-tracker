@@ -1,133 +1,152 @@
-from flask import Flask, render_template, request, jsonify, redirect, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 import sqlite3
+import os
 
 app = Flask(__name__)
-app.secret_key = "supersecretkey"
+app.secret_key = 'your_secret_key'
 
-# DB INIT
+DATABASE = 'expenses.db'
+
+
+# ---------------- DATABASE ---------------- #
+def get_db():
+    conn = sqlite3.connect(DATABASE)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
 def init_db():
-    conn = sqlite3.connect('expenses.db')
-    c = conn.cursor()
+    conn = get_db()
+    cursor = conn.cursor()
 
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS expenses (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            amount INTEGER,
-            category TEXT
-        )
-    ''')
-
-    c.execute('''
+    # Users table
+    cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT,
+            username TEXT UNIQUE,
             password TEXT
         )
     ''')
 
+    # Expenses table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS expenses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            title TEXT,
+            amount REAL,
+            category TEXT,
+            date TEXT,
+            FOREIGN KEY(user_id) REFERENCES users(id)
+        )
+    ''')
+
     conn.commit()
     conn.close()
+
 
 init_db()
 
-# ROOT
-@app.route('/')
-def root():
-    return redirect('/login')
 
-# LOGIN / SIGNUP
+# ---------------- LOGIN ---------------- #
+@app.route('/', methods=['GET', 'POST'])
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-
-        username = request.form.get('username')
-        password = request.form.get('password')
+        username = request.form['username']
+        password = request.form['password']
         action = request.form.get('action')
 
-        conn = sqlite3.connect('expenses.db')
-        c = conn.cursor()
+        conn = get_db()
+        cursor = conn.cursor()
 
-        if action == "signup":
-            c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
-            conn.commit()
-            conn.close()
+        if action == 'signup':
+            try:
+                cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+                conn.commit()
+                flash("Signup successful! Please login.", "success")
+            except:
+                flash("User already exists!", "error")
 
-            flash("Signup successful 🎉", "success")
-            session['user'] = username
-            return redirect('/home')
-
-        elif action == "login":
-            c.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
-            user = c.fetchone()
-            conn.close()
+        elif action == 'login':
+            cursor.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
+            user = cursor.fetchone()
 
             if user:
-                flash("Login successful ✅", "success")
-                session['user'] = username
-                return redirect('/home')
+                session['user_id'] = user['id']
+                session['username'] = user['username']
+                return redirect(url_for('home'))
             else:
-                flash("Invalid credentials ❌", "error")
+                flash("Invalid credentials!", "error")
+
+        conn.close()
 
     return render_template('login.html')
 
-# HOME
+
+# ---------------- HOME ---------------- #
 @app.route('/home')
 def home():
-    if 'user' not in session:
-        return redirect('/login')
-    return render_template('index.html', user=session['user'])
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
 
-# LOGOUT
-@app.route('/logout')
-def logout():
-    session.pop('user', None)
-    flash("Logged out successfully 👋", "success")
-    return redirect('/login')
+    conn = get_db()
+    cursor = conn.cursor()
 
-# ADD EXPENSE
+    cursor.execute("SELECT * FROM expenses WHERE user_id=?", (session['user_id'],))
+    expenses = cursor.fetchall()
+
+    total = sum(exp['amount'] for exp in expenses)
+
+    conn.close()
+
+    return render_template('index.html', expenses=expenses, total=total, username=session['username'])
+
+
+# ---------------- ADD EXPENSE ---------------- #
 @app.route('/add', methods=['POST'])
 def add_expense():
-    data = request.json
-    conn = sqlite3.connect('expenses.db')
-    c = conn.cursor()
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
 
-    c.execute("INSERT INTO expenses (name, amount, category) VALUES (?, ?, ?)",
-              (data['name'], data['amount'], data['category']))
+    title = request.form['title']
+    amount = float(request.form['amount'])
+    category = request.form['category']
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        INSERT INTO expenses (user_id, title, amount, category, date)
+        VALUES (?, ?, ?, ?, date('now'))
+    ''', (session['user_id'], title, amount, category))
+
     conn.commit()
     conn.close()
 
-    return jsonify({'status': 'success'})
+    return redirect(url_for('home'))
 
-# GET EXPENSES
-@app.route('/get')
-def get_expenses():
-    conn = sqlite3.connect('expenses.db')
-    c = conn.cursor()
-    c.execute("SELECT * FROM expenses")
-    data = c.fetchall()
-    conn.close()
 
-    expenses = []
-    for row in data:
-        expenses.append({
-            'id': row[0],
-            'name': row[1],
-            'amount': row[2],
-            'category': row[3]
-        })
-
-    return jsonify(expenses)
-
-# DELETE
-@app.route('/delete/<int:id>', methods=['DELETE'])
+# ---------------- DELETE EXPENSE ---------------- #
+@app.route('/delete/<int:id>')
 def delete_expense(id):
-    conn = sqlite3.connect('expenses.db')
-    c = conn.cursor()
-    c.execute("DELETE FROM expenses WHERE id=?", (id,))
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM expenses WHERE id=?", (id,))
     conn.commit()
     conn.close()
-    return jsonify({'status': 'deleted'})
 
+    return redirect(url_for('home'))
+
+
+# ---------------- LOGOUT ---------------- #
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
+
+
+# ---------------- RUN APP (IMPORTANT FOR DEPLOY) ---------------- #
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))

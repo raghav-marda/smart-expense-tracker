@@ -10,52 +10,59 @@ body {
     font-family: 'Segoe UI', sans-serif;
     background: linear-gradient(135deg, #89f7fe, #66a6ff);
     min-height: 100vh;
+}
+
+/* ---------------- HEADER ---------------- */
+.header {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
+    margin-bottom: 20px;
 }
 
-/* CONTAINER */
-.container {
-    background: #ffffff;
-    padding: 30px;
-    width: 900px;
-    max-width: 95%;
-    border-radius: 20px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-}
-
-/* TITLE */
-h1 {
-    text-align: center;
-    margin-bottom: 25px;
+.header h1 {
     color: #333;
 }
 
-/* WRAPPER */
+.header a {
+    text-decoration: none;
+    color: red;
+    font-weight: bold;
+}
+
+/* ---------------- CONTAINER ---------------- */
+.container {
+    width: 900px;
+    max-width: 95%;
+    margin: 40px auto;
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+}
+
+/* ---------------- WRAPPER ---------------- */
 .wrapper {
     display: flex;
     gap: 30px;
 }
 
-/* LEFT */
+/* LEFT & RIGHT */
 .left {
     flex: 1;
 }
 
-/* RIGHT */
 .right {
     flex: 1;
     text-align: center;
 }
 
-/* FORM */
+/* ---------------- FORM ---------------- */
 form {
     text-align: center;
     margin-bottom: 20px;
 }
 
-/* INPUTS */
 input, select {
     padding: 10px;
     margin: 8px;
@@ -72,7 +79,6 @@ input:focus, select:focus {
 
 /* BUTTON */
 .add-btn {
-    margin-top: 10px;
     padding: 10px 20px;
     background: linear-gradient(135deg, #28a745, #2ecc71);
     color: white;
@@ -86,7 +92,7 @@ input:focus, select:focus {
     transform: scale(1.05);
 }
 
-/* HEADINGS */
+/* ---------------- TEXT ---------------- */
 h2 {
     margin-top: 20px;
     color: #444;
@@ -97,13 +103,12 @@ h3 {
     color: #666;
 }
 
-/* LIST */
+/* ---------------- LIST ---------------- */
 ul {
     list-style: none;
     margin-top: 15px;
 }
 
-/* LIST ITEM */
 li {
     background: #f1f3f6;
     margin: 10px 0;
@@ -127,95 +132,19 @@ li:hover {
     padding: 6px 10px;
     border-radius: 6px;
     cursor: pointer;
-    transition: 0.3s;
 }
 
 .delete-btn:hover {
     background: #e60000;
 }
 
-/* CHART */
+/* ---------------- CHART ---------------- */
 canvas {
     margin-top: 20px;
     height: 300px !important;
 }
 
-/* RESPONSIVE */
-@media (max-width: 768px) {
-    .wrapper {
-        flex-direction: column;
-    }
-
-    input, select {
-        width: 90%;
-    }
-}
-
-small {
-    color: #888;
-    font-size: 12px;
-}
-
-.login-container {
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-}
-
-.login-card {
-    background: white;
-    padding: 40px;
-    width: 500px;
-    max-width: 90%;
-    border-radius: 15px;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
-    text-align: center;
-}
-
-.login-card h1 {
-    margin-bottom: 10px;
-}
-
-.login-card h2 {
-    margin-bottom: 20px;
-    color: #666;
-}
-
-.login-card input {
-    width: 100%;
-    padding: 12px;
-    margin: 10px 0;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-}
-
-.btn-group {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
-}
-
-.login-btn {
-    flex: 1;
-    padding: 10px;
-    background: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 6px;
-}
-
-.signup-btn {
-    flex: 1;
-    padding: 10px;
-    background: #ff7e5f;
-    color: white;
-    border: none;
-    border-radius: 6px;
-}
-
-/* FLASH MESSAGES */
+/* ---------------- FLASH MESSAGES ---------------- */
 .success {
     background: #d4edda;
     color: #155724;
@@ -232,4 +161,79 @@ small {
     border-radius: 6px;
     margin: 10px 0;
     text-align: center;
+}
+
+/* ---------------- LOGIN PAGE ---------------- */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;  
+}
+
+.login-card {
+    background: white;
+    padding: 40px;
+    width: 400px;
+    border-radius: 15px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+    text-align: center;
+}
+
+.login-card h1 {
+    margin-bottom: 10px;
+}
+
+.login-card h2 {
+    margin-bottom: 20px;
+    color: #666;
+}
+
+/* LOGIN INPUTS */
+.login-card input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+/* BUTTON GROUP */
+.btn-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+/* LOGIN BUTTON */
+.login-btn {
+    flex: 1;
+    padding: 10px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* SIGNUP BUTTON */
+.signup-btn {
+    flex: 1;
+    padding: 10px;
+    background: #ff7e5f;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* ---------------- RESPONSIVE ---------------- */
+@media (max-width: 768px) {
+    .wrapper {
+        flex-direction: column;
+    }
+
+    input, select {
+        width: 90%;
+    }
 }

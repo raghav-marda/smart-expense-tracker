@@ -2,7 +2,6 @@
 <html>
 <head>
     <title>Smart Expense Tracker</title>
-
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -13,8 +12,8 @@
 
     <div class="header">
         <h1>💰 Smart Expense Tracker</h1>
-        <div class="user-section">
-            <span>👤 {{ username }}</span>
+        <div>
+            👤 {{ user }} |
             <a href="/logout">Logout</a>
         </div>
     </div>
@@ -23,45 +22,37 @@
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
         {% for category, message in messages %}
-            <p>{{ message }}</p>
+            <p class="{{ category }}">{{ message }}</p>
         {% endfor %}
     {% endif %}
     {% endwith %}
 
     <div class="wrapper">
 
-        <!-- LEFT -->
         <div class="left">
 
-            <form action="/add" method="POST">
-                <input type="text" name="title" placeholder="Enter Expense" required>
-                <input type="number" name="amount" placeholder="Amount" required>
+            <form id="expense-form">
+                <input type="text" id="expense-name" placeholder="Enter Expense" required>
+                <input type="number" id="expense-amount" placeholder="Amount" required>
 
-                <select name="category">
+                <select id="category">
                     <option value="Food">Food</option>
                     <option value="Travel">Travel</option>
                     <option value="Shopping">Shopping</option>
                     <option value="Other">Other</option>
                 </select>
 
-                <button type="submit">+ Add Expense</button>
+                <br>
+                <button type="submit" class="add-btn">+ Add Expense</button>
             </form>
 
             <h2>Expenses</h2>
-            <h3>Total: ₹{{ total }}</h3>
+            <h3>Total: ₹<span id="total">0</span></h3>
 
-            <ul>
-                {% for exp in expenses %}
-                <li>
-                    {{ exp.title }} - ₹{{ exp.amount }} ({{ exp.category }})
-                    <a href="/delete/{{ exp.id }}">❌</a>
-                </li>
-                {% endfor %}
-            </ul>
+            <ul id="expense-list"></ul>
 
         </div>
 
-        <!-- RIGHT -->
         <div class="right">
             <h2>Analytics</h2>
             <canvas id="expenseChart"></canvas>
@@ -71,15 +62,6 @@
 
 </div>
 
-<!-- PASS DATA SAFELY -->
-<div id="chart-data"
-     data-food="{{ food_total }}"
-     data-travel="{{ travel_total }}"
-     data-shopping="{{ shopping_total }}"
-     data-other="{{ other_total }}">
-</div>
-
-<!-- JS FILE -->
 <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 
 </body>

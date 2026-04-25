@@ -1,11 +1,19 @@
 const form = document.getElementById("expense-form");
 const list = document.getElementById("expense-list");
 const totalEl = document.getElementById("total");
+const monthFilter = document.getElementById("month-filter");
 
-let chart;
+let pieChart;
+let lineChart;
 
-window.onload = loadExpenses;
+window.onload = () => {
+    loadExpenses();
+    loadMonthlyChart();
+};
 
+monthFilter.addEventListener("change", loadExpenses);
+
+// ---------------- ADD ----------------
 form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -21,10 +29,18 @@ form.addEventListener("submit", async (e) => {
 
     form.reset();
     loadExpenses();
+    loadMonthlyChart();
 });
 
+// ---------------- LOAD ----------------
 async function loadExpenses() {
-    const res = await fetch("/get");
+    let url = "/get";
+
+    if (monthFilter.value) {
+        url += `?month=${monthFilter.value}`;
+    }
+
+    const res = await fetch(url);
     const data = await res.json();
 
     list.innerHTML = "";
@@ -37,13 +53,16 @@ async function loadExpenses() {
 
         const li = document.createElement("li");
 
+        const safeName = exp.name.replace(/'/g, "\\'");
+        const safeCategory = exp.category.replace(/'/g, "\\'");
+
         li.innerHTML = `
             <div>
                 <strong>${exp.name} - ₹${amount}</strong><br>
                 <small style="color: gray;">${exp.category}</small>
             </div>
             <div>
-                <button onclick="editExpense(${exp.id}, '${exp.name}', ${amount}, '${exp.category}')">✏️</button>
+                <button onclick="editExpense(${exp.id}, '${safeName}', ${amount}, '${safeCategory}')">✏️</button>
                 <button class="delete-btn" onclick="deleteExpense(${exp.id})">❌</button>
             </div>
         `;
@@ -54,44 +73,53 @@ async function loadExpenses() {
     });
 
     totalEl.textContent = total;
-    updateChart(categoryData);
+    updatePieChart(categoryData);
 }
 
+// ---------------- DELETE ----------------
 async function deleteExpense(id) {
     await fetch(`/delete/${id}`, {method: "DELETE"});
     loadExpenses();
+    loadMonthlyChart();
 }
 
-async function editExpense(id, oldName, oldAmount, oldCategory) {
+// ---------------- EDIT ----------------
+function editExpense(id, oldName, oldAmount, oldCategory) {
+    const newName = prompt("Edit name:", oldName);
+    if (!newName) return;
 
-    const name = prompt("Edit expense name:", oldName);
-    if (name === null) return;
+    const newAmount = prompt("Edit amount:", oldAmount);
+    if (!newAmount) return;
 
-    const amount = prompt("Edit amount:", oldAmount);
-    if (amount === null) return;
+    const categories = ["Food", "Travel", "Shopping", "Other"];
 
-    const category = prompt("Edit category (Food/Travel/Shopping/Other):", oldCategory);
-    if (category === null) return;
+    let newCategory = prompt("Category:", oldCategory);
 
-    await fetch(`/edit/${id}`, {
+    if (!categories.includes(newCategory)) {
+        newCategory = oldCategory;
+    }
+
+    fetch(`/edit/${id}`, {
         method: "PUT",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
-            name: name,
-            amount: parseInt(amount),
-            category: category
+            name: newName,
+            amount: parseInt(newAmount),
+            category: newCategory
         })
+    }).then(() => {
+        loadExpenses();
+        loadMonthlyChart();
     });
-
-    loadExpenses();
 }
 
-function updateChart(data) {
+// ---------------- PIE ----------------
+function updatePieChart(data) {
     const ctx = document.getElementById("expenseChart");
 
-    if (chart) chart.destroy();
+    if (pieChart) pieChart.destroy();
 
-    chart = new Chart(ctx, {
+    pieChart = new Chart(ctx, {
         type: "pie",
         data: {
             labels: Object.keys(data),
@@ -104,6 +132,56 @@ function updateChart(data) {
                     "#999999"
                 ]
             }]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    position: "top"
+                }
+            }
         }
     });
+}
+
+// ---------------- LINE ----------------
+async function loadMonthlyChart() {
+    const res = await fetch("/monthly-summary");
+    const data = await res.json();
+
+    const monthNames = {
+        "01":"Jan","02":"Feb","03":"Mar","04":"Apr",
+        "05":"May","06":"Jun","07":"Jul","08":"Aug",
+        "09":"Sep","10":"Oct","11":"Nov","12":"Dec"
+    };
+
+    const labels = Object.keys(data).map(m => monthNames[m]);
+    const values = Object.values(data);
+
+    const ctx = document.getElementById("monthlyChart");
+
+    if (lineChart) lineChart.destroy();
+
+    lineChart = new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: labels,
+            datasets: [{
+                label: "Monthly Spending",
+                data: values,
+                borderColor: "#4CAF50",
+                backgroundColor: "rgba(76,175,80,0.2)",
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+}
+
+// ---------------- EXPORT ----------------
+function exportData() {
+    window.location.href = "/export";
 }

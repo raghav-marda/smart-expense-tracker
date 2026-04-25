@@ -33,12 +33,28 @@
         <!-- LEFT -->
         <div class="left">
 
+            <!-- MONTH FILTER -->
+            <select id="month-filter">
+                <option value="">📅 All Months</option>
+                <option value="01">Jan</option>
+                <option value="02">Feb</option>
+                <option value="03">Mar</option>
+                <option value="04">Apr</option>
+                <option value="05">May</option>
+                <option value="06">Jun</option>
+                <option value="07">Jul</option>
+                <option value="08">Aug</option>
+                <option value="09">Sep</option>
+                <option value="10">Oct</option>
+                <option value="11">Nov</option>
+                <option value="12">Dec</option>
+            </select>
+
             <!-- FORM -->
             <form id="expense-form">
                 <input type="text" id="expense-name" placeholder="Enter Expense" required>
                 <input type="number" id="expense-amount" placeholder="Amount" required>
 
-                <!-- ✅ EMOJI FIX -->
                 <select id="category">
                     <option value="Food">🍔 Food</option>
                     <option value="Travel">✈️ Travel</option>
@@ -50,6 +66,12 @@
                 <button type="submit" class="add-btn">+ Add Expense</button>
             </form>
 
+            <!-- EXPORT -->
+            <button onclick="exportData()" 
+                style="margin-top:10px; padding:10px 15px; background:#007bff; color:white; border:none; border-radius:6px; cursor:pointer;">
+                ⬇ Export Data
+            </button>
+
             <!-- EXPENSE LIST -->
             <h2>📋 Expenses</h2>
             <h3>Total: ₹<span id="total">0</span></h3>
@@ -60,8 +82,18 @@
 
         <!-- RIGHT -->
         <div class="right">
-            <h2>📊 Analytics</h2>
-            <canvas id="expenseChart"></canvas>
+            <h2 style="text-align:center;">📊 Analytics</h2>
+
+            <!-- PIE CHART -->
+            <div style="width:300px; margin:auto;">
+                <canvas id="expenseChart"></canvas>
+            </div>
+
+            <!-- LINE CHART -->
+            <div style="width:100%; height:300px; margin-top:30px;">
+                <canvas id="monthlyChart"></canvas>
+            </div>
+
         </div>
 
     </div>

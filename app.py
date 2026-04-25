@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify, redirect, session, flash
 import sqlite3
 import os
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
@@ -16,7 +17,8 @@ def init_db():
             user_id TEXT,
             name TEXT,
             amount INTEGER,
-            category TEXT
+            category TEXT,
+            date TEXT
         )
     ''')
 
@@ -34,9 +36,11 @@ def init_db():
 init_db()
 
 # ---------------- ROUTES ----------------
+
 @app.route('/')
 def root():
     return redirect('/login')
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -73,17 +77,20 @@ def login():
 
     return render_template('login.html')
 
+
 @app.route('/home')
 def home():
     if 'user' not in session:
         return redirect('/login')
     return render_template('index.html', user=session['user'])
 
+
 @app.route('/logout')
 def logout():
     session.pop('user', None)
     flash("Logged out successfully 👋", "success")
     return redirect('/login')
+
 
 # ---------------- EXPENSE ----------------
 
@@ -97,12 +104,14 @@ def add_expense():
     category = data.get('category')
     user = session.get('user')
 
+    today = datetime.now().strftime("%Y-%m-%d")
+
     conn = sqlite3.connect('expenses.db')
     c = conn.cursor()
 
     c.execute(
-        "INSERT INTO expenses (user_id, name, amount, category) VALUES (?, ?, ?, ?)",
-        (user, name, amount, category)
+        "INSERT INTO expenses (user_id, name, amount, category, date) VALUES (?, ?, ?, ?, ?)",
+        (user, name, amount, category, today)
     )
 
     conn.commit()
@@ -111,25 +120,37 @@ def add_expense():
     return jsonify({'status': 'success'})
 
 
-# 📥 GET
+# 📥 GET (WITH MONTH FILTER + CATEGORY FIX)
 @app.route('/get')
 def get_expenses():
     user = session.get('user')
+    month = request.args.get('month')
 
     conn = sqlite3.connect('expenses.db')
     c = conn.cursor()
 
-    c.execute("SELECT * FROM expenses WHERE user_id=?", (user,))
+    if month:
+        c.execute("""
+            SELECT * FROM expenses 
+            WHERE user_id=? AND strftime('%m', date)=?
+        """, (user, month))
+    else:
+        c.execute("SELECT * FROM expenses WHERE user_id=?", (user,))
+
     data = c.fetchall()
     conn.close()
 
+    valid_categories = ["Food", "Travel", "Shopping", "Other"]
+
     expenses = []
     for row in data:
+        category = row[4] if row[4] in valid_categories else "Other"
+
         expenses.append({
             'id': row[0],
             'name': row[2],
             'amount': row[3],
-            'category': row[4]
+            'category': category
         })
 
     return jsonify(expenses)
@@ -151,7 +172,7 @@ def delete_expense(id):
     return jsonify({'status': 'deleted'})
 
 
-# ✏️ EDIT
+# ✏️ EDIT (WITH CATEGORY FIX)
 @app.route('/edit/<int:id>', methods=['PUT'])
 def edit_expense(id):
     user = session.get('user')
@@ -160,6 +181,10 @@ def edit_expense(id):
     name = data.get('name')
     amount = data.get('amount')
     category = data.get('category')
+
+    valid_categories = ["Food", "Travel", "Shopping", "Other"]
+    if category not in valid_categories:
+        category = "Other"
 
     conn = sqlite3.connect('expenses.db')
     c = conn.cursor()
@@ -174,6 +199,54 @@ def edit_expense(id):
     conn.close()
 
     return jsonify({'status': 'updated'})
+
+
+# 📊 MONTHLY SUMMARY (FIXED LINE CHART)
+@app.route('/monthly-summary')
+def monthly_summary():
+    user = session.get('user')
+
+    conn = sqlite3.connect('expenses.db')
+    c = conn.cursor()
+
+    c.execute("""
+        SELECT strftime('%m', date), SUM(amount)
+        FROM expenses
+        WHERE user_id=?
+        GROUP BY strftime('%m', date)
+        ORDER BY strftime('%m', date)
+    """, (user,))
+
+    data = c.fetchall()
+    conn.close()
+
+    result = {}
+    for row in data:
+        result[row[0]] = row[1]
+
+    return jsonify(result)
+
+
+# 📥 EXPORT CSV
+@app.route('/export')
+def export_data():
+    user = session.get('user')
+
+    conn = sqlite3.connect('expenses.db')
+    c = conn.cursor()
+
+    c.execute("SELECT name, amount, category, date FROM expenses WHERE user_id=?", (user,))
+    data = c.fetchall()
+    conn.close()
+
+    content = "Name,Amount,Category,Date\n"
+    for row in data:
+        content += f"{row[0]},{row[1]},{row[2]},{row[3]}\n"
+
+    return content, 200, {
+        'Content-Type': 'text/csv',
+        'Content-Disposition': 'attachment; filename=expenses.csv'
+    }
 
 
 # ---------------- RUN ----------------

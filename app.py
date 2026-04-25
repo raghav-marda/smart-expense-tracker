@@ -19,7 +19,7 @@ def init_db():
     conn = get_db()
     cursor = conn.cursor()
 
-    # Users table
+    # USERS TABLE
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -28,7 +28,7 @@ def init_db():
         )
     ''')
 
-    # Expenses table
+    # EXPENSES TABLE
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS expenses (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -62,14 +62,20 @@ def login():
 
         if action == 'signup':
             try:
-                cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+                cursor.execute(
+                    "INSERT INTO users (username, password) VALUES (?, ?)",
+                    (username, password)
+                )
                 conn.commit()
-                flash("Signup successful! Please login.", "success")
+                flash("Signup successful 🎉 Please login.", "success")
             except:
                 flash("User already exists!", "error")
 
         elif action == 'login':
-            cursor.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
+            cursor.execute(
+                "SELECT * FROM users WHERE username=? AND password=?",
+                (username, password)
+            )
             user = cursor.fetchone()
 
             if user:
@@ -93,10 +99,20 @@ def home():
     conn = get_db()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT * FROM expenses WHERE user_id=?", (session['user_id'],))
+    cursor.execute(
+        "SELECT * FROM expenses WHERE user_id=?",
+        (session['user_id'],)
+    )
     expenses = cursor.fetchall()
 
+    # TOTAL
     total = sum(exp['amount'] for exp in expenses)
+
+    # CATEGORY TOTALS (FOR CHART)
+    food_total = sum(exp['amount'] for exp in expenses if exp['category'] == 'Food')
+    travel_total = sum(exp['amount'] for exp in expenses if exp['category'] == 'Travel')
+    shopping_total = sum(exp['amount'] for exp in expenses if exp['category'] == 'Shopping')
+    other_total = sum(exp['amount'] for exp in expenses if exp['category'] == 'Other')
 
     conn.close()
 
@@ -104,7 +120,11 @@ def home():
         'index.html',
         expenses=expenses,
         total=total,
-        user=session['username']   # ✅ FIXED HERE
+        user=session['username'],
+        food_total=food_total,
+        travel_total=travel_total,
+        shopping_total=shopping_total,
+        other_total=other_total
     )
 
 
@@ -114,8 +134,7 @@ def add_expense():
     if 'user_id' not in session:
         return redirect(url_for('login'))
 
-    # ✅ FIXED (MATCHING HTML)
-    title = request.form['name']
+    title = request.form['name']  # MATCHES HTML
     amount = float(request.form['amount'])
     category = request.form['category']
 
@@ -145,6 +164,8 @@ def delete_expense(id):
     conn.commit()
     conn.close()
 
+    flash("Expense Deleted!", "success")
+
     return redirect(url_for('home'))
 
 
@@ -155,6 +176,6 @@ def logout():
     return redirect(url_for('login'))
 
 
-# ---------------- RUN APP ---------------- #
+# ---------------- RUN APP (DEPLOY READY) ---------------- #
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))

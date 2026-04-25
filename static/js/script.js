@@ -37,13 +37,15 @@ async function loadExpenses() {
 
         const li = document.createElement("li");
 
-        // ✅ FIXED UI (same as original)
         li.innerHTML = `
             <div>
                 <strong>${exp.name} - ₹${amount}</strong><br>
                 <small style="color: gray;">${exp.category}</small>
             </div>
-            <button class="delete-btn" onclick="deleteExpense(${exp.id})">❌</button>
+            <div>
+                <button onclick="editExpense(${exp.id}, '${exp.name}', ${amount}, '${exp.category}')">✏️</button>
+                <button class="delete-btn" onclick="deleteExpense(${exp.id})">❌</button>
+            </div>
         `;
 
         list.appendChild(li);
@@ -60,6 +62,30 @@ async function deleteExpense(id) {
     loadExpenses();
 }
 
+async function editExpense(id, oldName, oldAmount, oldCategory) {
+
+    const name = prompt("Edit expense name:", oldName);
+    if (name === null) return;
+
+    const amount = prompt("Edit amount:", oldAmount);
+    if (amount === null) return;
+
+    const category = prompt("Edit category (Food/Travel/Shopping/Other):", oldCategory);
+    if (category === null) return;
+
+    await fetch(`/edit/${id}`, {
+        method: "PUT",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            name: name,
+            amount: parseInt(amount),
+            category: category
+        })
+    });
+
+    loadExpenses();
+}
+
 function updateChart(data) {
     const ctx = document.getElementById("expenseChart");
 
@@ -71,12 +97,11 @@ function updateChart(data) {
             labels: Object.keys(data),
             datasets: [{
                 data: Object.values(data),
-                // ✅ FIXED COLORS (match original)
                 backgroundColor: [
-                    "#4CAF50",  // Food
-                    "#ff7e5f",  // Shopping
-                    "#36A2EB",  // Travel
-                    "#999999"   // Other
+                    "#4CAF50",
+                    "#ff7e5f",
+                    "#36A2EB",
+                    "#999999"
                 ]
             }]
         }

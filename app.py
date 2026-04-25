@@ -13,6 +13,7 @@ def init_db():
     c.execute('''
         CREATE TABLE IF NOT EXISTS expenses (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT,
             name TEXT,
             amount INTEGER,
             category TEXT
@@ -22,7 +23,7 @@ def init_db():
     c.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT,
+            username TEXT UNIQUE,
             password TEXT
         )
     ''')
@@ -85,21 +86,23 @@ def logout():
     return redirect('/login')
 
 # ---------------- EXPENSE ----------------
+
+# ➕ ADD
 @app.route('/add', methods=['POST'])
 def add_expense():
     data = request.get_json()
 
-    # safer extraction
     name = data.get('name')
     amount = data.get('amount')
     category = data.get('category')
+    user = session.get('user')
 
     conn = sqlite3.connect('expenses.db')
     c = conn.cursor()
 
     c.execute(
-        "INSERT INTO expenses (name, amount, category) VALUES (?, ?, ?)",
-        (name, amount, category)
+        "INSERT INTO expenses (user_id, name, amount, category) VALUES (?, ?, ?, ?)",
+        (user, name, amount, category)
     )
 
     conn.commit()
@@ -107,11 +110,16 @@ def add_expense():
 
     return jsonify({'status': 'success'})
 
+
+# 📥 GET
 @app.route('/get')
 def get_expenses():
+    user = session.get('user')
+
     conn = sqlite3.connect('expenses.db')
     c = conn.cursor()
-    c.execute("SELECT * FROM expenses")
+
+    c.execute("SELECT * FROM expenses WHERE user_id=?", (user,))
     data = c.fetchall()
     conn.close()
 
@@ -119,22 +127,55 @@ def get_expenses():
     for row in data:
         expenses.append({
             'id': row[0],
-            'name': row[1],
-            'amount': row[2],
-            'category': row[3]
+            'name': row[2],
+            'amount': row[3],
+            'category': row[4]
         })
 
     return jsonify(expenses)
 
+
+# ❌ DELETE
 @app.route('/delete/<int:id>', methods=['DELETE'])
 def delete_expense(id):
+    user = session.get('user')
+
     conn = sqlite3.connect('expenses.db')
     c = conn.cursor()
-    c.execute("DELETE FROM expenses WHERE id=?", (id,))
+
+    c.execute("DELETE FROM expenses WHERE id=? AND user_id=?", (id, user))
+
     conn.commit()
     conn.close()
+
     return jsonify({'status': 'deleted'})
 
-# ---------------- RUN (DEPLOY READY) ----------------
+
+# ✏️ EDIT
+@app.route('/edit/<int:id>', methods=['PUT'])
+def edit_expense(id):
+    user = session.get('user')
+    data = request.get_json()
+
+    name = data.get('name')
+    amount = data.get('amount')
+    category = data.get('category')
+
+    conn = sqlite3.connect('expenses.db')
+    c = conn.cursor()
+
+    c.execute("""
+        UPDATE expenses 
+        SET name=?, amount=?, category=? 
+        WHERE id=? AND user_id=?
+    """, (name, amount, category, id, user))
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({'status': 'updated'})
+
+
+# ---------------- RUN ----------------
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))

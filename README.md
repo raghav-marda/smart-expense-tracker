@@ -1,29 +1,38 @@
 # 💰 Smart Expense Tracker
 
-A modern **full-stack expense tracking web application** built using Flask, JavaScript, and SQLite.
-Track your daily spending, visualize analytics, and manage expenses efficiently with a clean UI.
+A fully deployed **full-stack expense tracking web application** built using Flask, JavaScript, and SQLite.
+
+This project allows users to **track expenses, visualize spending patterns, and manage finances in real-time** through an intuitive and responsive interface.
 
 ---
 
-## 🚀 Features
+## 🚀 Live Demo
 
-* ➕ Add expenses with categories (Food, Travel, Shopping, etc.)
-* 🗑️ Delete expenses instantly
-* 📊 Real-time analytics using interactive pie charts
-* 🔐 Login & Signup system (basic authentication)
-* 💾 Persistent storage using SQLite database
-* 🎨 Clean, responsive, and modern UI
+🔗 https://smart-expense-tracker-0pon.onrender.com
+
+---
+
+## ✨ Key Features
+
+* ➕ Add and manage daily expenses with categories
+* 🗑️ Delete expenses instantly with real-time updates
+* 📊 Interactive analytics using dynamic pie charts
+* 🔐 User authentication (Login & Signup system)
+* 💾 Persistent data storage using SQLite
+* ⚡ Real-time UI updates using JavaScript (no page reload)
+* 🎨 Clean, modern and responsive design
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer    | Technology Used       |
-| -------- | --------------------- |
-| Frontend | HTML, CSS, JavaScript |
-| Backend  | Flask (Python)        |
-| Database | SQLite                |
-| Charts   | Chart.js              |
+| Layer    | Technology Used           |
+| -------- | ------------------------- |
+| Frontend | HTML, CSS, JavaScript     |
+| Backend  | Flask (Python)            |
+| Database | SQLite                    |
+| Charts   | Chart.js                  |
+| Hosting  | Render (Cloud Deployment) |
 
 ---
 
@@ -39,28 +48,16 @@ Track your daily spending, visualize analytics, and manage expenses efficiently 
 
 ---
 
-## ⚙️ How to Run Locally
-
-### 1️⃣ Clone the repository
+## ⚙️ Run Locally
 
 ```bash
 git clone https://github.com/raghav-marda/smart-expense-tracker.git
 cd smart-expense-tracker
-```
-
-### 2️⃣ Install dependencies
-
-```bash
 pip install -r requirements.txt
-```
-
-### 3️⃣ Run the application
-
-```bash
 python app.py
 ```
 
-### 4️⃣ Open in browser
+Open in browser:
 
 ```
 http://127.0.0.1:5000
@@ -83,39 +80,34 @@ smart-expense-tracker/
 │
 ├── app.py
 ├── requirements.txt
-├── .gitignore
 └── README.md
 ```
 
 ---
 
-## 📌 Future Improvements
+## 📈 Future Improvements
 
-* 📅 Monthly & yearly reports
-* 📤 Export expenses to PDF/Excel
+* 📅 Monthly & yearly expense reports
+* 📤 Export data to PDF/Excel
 * 🌙 Dark mode UI
-* 📊 Advanced analytics dashboard
-* 🔒 Secure authentication system
+* 🔐 Advanced authentication (hashed passwords)
+* ☁️ Cloud database integration
 
 ---
 
 ## 👨‍💻 Author
 
 **Raghav Marda**
-📌 B.Tech CSE Student
-💡 Interested in Web Development & Cybersecurity
+B.Tech CSE Student
+Interested in Web Development & Cybersecurity
 
 ---
 
-## ⭐ Support
+## ⭐ Show Your Support
 
-If you like this project:
+If you found this useful:
 
-👉 Give it a **Star ⭐ on GitHub**
+👉 Star the repository
 👉 Share it on LinkedIn
 
 ---
-
-## 🔗 Live Demo (Coming Soon)
-
-(Will be added after deployment)

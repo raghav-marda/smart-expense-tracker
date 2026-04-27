@@ -1,30 +1,37 @@
 from flask import Flask, render_template, request, jsonify, redirect, session, flash
-import sqlite3
+import psycopg2
 import os
 from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
+# ---------------- DB CONNECTION ----------------
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+def get_db_connection():
+    return psycopg2.connect(DATABASE_URL)
+
+
 # ---------------- DB INIT ----------------
 def init_db():
-    conn = sqlite3.connect('expenses.db')
+    conn = get_db_connection()
     c = conn.cursor()
 
     c.execute('''
         CREATE TABLE IF NOT EXISTS expenses (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             user_id TEXT,
             name TEXT,
             amount INTEGER,
             category TEXT,
-            date TEXT
+            date DATE
         )
     ''')
 
     c.execute('''
         CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             username TEXT UNIQUE,
             password TEXT
         )
@@ -34,6 +41,7 @@ def init_db():
     conn.close()
 
 init_db()
+
 
 # ---------------- ROUTES ----------------
 
@@ -50,12 +58,15 @@ def login():
         password = request.form.get('password')
         action = request.form.get('action')
 
-        conn = sqlite3.connect('expenses.db')
+        conn = get_db_connection()
         c = conn.cursor()
 
         if action == "signup":
             try:
-                c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+                c.execute(
+                    "INSERT INTO users (username, password) VALUES (%s, %s)",
+                    (username, password)
+                )
                 conn.commit()
                 session['user'] = username
                 flash("Signup successful 🎉", "success")
@@ -64,9 +75,11 @@ def login():
                 flash("User already exists ❌", "error")
 
         elif action == "login":
-            c.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
+            c.execute(
+                "SELECT * FROM users WHERE username=%s AND password=%s",
+                (username, password)
+            )
             user = c.fetchone()
-            conn.close()
 
             if user:
                 session['user'] = username
@@ -74,6 +87,8 @@ def login():
                 return redirect('/home')
             else:
                 flash("Invalid credentials ❌", "error")
+
+        conn.close()
 
     return render_template('login.html')
 
@@ -104,13 +119,13 @@ def add_expense():
     category = data.get('category')
     user = session.get('user')
 
-    today = datetime.now().strftime("%Y-%m-%d")
+    today = datetime.now().date()
 
-    conn = sqlite3.connect('expenses.db')
+    conn = get_db_connection()
     c = conn.cursor()
 
     c.execute(
-        "INSERT INTO expenses (user_id, name, amount, category, date) VALUES (?, ?, ?, ?, ?)",
+        "INSERT INTO expenses (user_id, name, amount, category, date) VALUES (%s, %s, %s, %s, %s)",
         (user, name, amount, category, today)
     )
 
@@ -120,22 +135,22 @@ def add_expense():
     return jsonify({'status': 'success'})
 
 
-# 📥 GET (WITH MONTH FILTER + CATEGORY FIX)
+# 📥 GET
 @app.route('/get')
 def get_expenses():
     user = session.get('user')
     month = request.args.get('month')
 
-    conn = sqlite3.connect('expenses.db')
+    conn = get_db_connection()
     c = conn.cursor()
 
     if month:
         c.execute("""
             SELECT * FROM expenses 
-            WHERE user_id=? AND strftime('%m', date)=?
-        """, (user, month))
+            WHERE user_id=%s AND EXTRACT(MONTH FROM date)=%s
+        """, (user, int(month)))
     else:
-        c.execute("SELECT * FROM expenses WHERE user_id=?", (user,))
+        c.execute("SELECT * FROM expenses WHERE user_id=%s", (user,))
 
     data = c.fetchall()
     conn.close()
@@ -161,10 +176,13 @@ def get_expenses():
 def delete_expense(id):
     user = session.get('user')
 
-    conn = sqlite3.connect('expenses.db')
+    conn = get_db_connection()
     c = conn.cursor()
 
-    c.execute("DELETE FROM expenses WHERE id=? AND user_id=?", (id, user))
+    c.execute(
+        "DELETE FROM expenses WHERE id=%s AND user_id=%s",
+        (id, user)
+    )
 
     conn.commit()
     conn.close()
@@ -172,7 +190,7 @@ def delete_expense(id):
     return jsonify({'status': 'deleted'})
 
 
-# ✏️ EDIT (WITH CATEGORY FIX)
+# ✏️ EDIT
 @app.route('/edit/<int:id>', methods=['PUT'])
 def edit_expense(id):
     user = session.get('user')
@@ -186,13 +204,13 @@ def edit_expense(id):
     if category not in valid_categories:
         category = "Other"
 
-    conn = sqlite3.connect('expenses.db')
+    conn = get_db_connection()
     c = conn.cursor()
 
     c.execute("""
         UPDATE expenses 
-        SET name=?, amount=?, category=? 
-        WHERE id=? AND user_id=?
+        SET name=%s, amount=%s, category=%s 
+        WHERE id=%s AND user_id=%s
     """, (name, amount, category, id, user))
 
     conn.commit()
@@ -201,20 +219,20 @@ def edit_expense(id):
     return jsonify({'status': 'updated'})
 
 
-# 📊 MONTHLY SUMMARY (FIXED LINE CHART)
+# 📊 MONTHLY SUMMARY
 @app.route('/monthly-summary')
 def monthly_summary():
     user = session.get('user')
 
-    conn = sqlite3.connect('expenses.db')
+    conn = get_db_connection()
     c = conn.cursor()
 
     c.execute("""
-        SELECT strftime('%m', date), SUM(amount)
+        SELECT EXTRACT(MONTH FROM date), SUM(amount)
         FROM expenses
-        WHERE user_id=?
-        GROUP BY strftime('%m', date)
-        ORDER BY strftime('%m', date)
+        WHERE user_id=%s
+        GROUP BY EXTRACT(MONTH FROM date)
+        ORDER BY EXTRACT(MONTH FROM date)
     """, (user,))
 
     data = c.fetchall()
@@ -222,7 +240,7 @@ def monthly_summary():
 
     result = {}
     for row in data:
-        result[row[0]] = row[1]
+        result[str(int(row[0])).zfill(2)] = row[1]
 
     return jsonify(result)
 
@@ -232,10 +250,13 @@ def monthly_summary():
 def export_data():
     user = session.get('user')
 
-    conn = sqlite3.connect('expenses.db')
+    conn = get_db_connection()
     c = conn.cursor()
 
-    c.execute("SELECT name, amount, category, date FROM expenses WHERE user_id=?", (user,))
+    c.execute(
+        "SELECT name, amount, category, date FROM expenses WHERE user_id=%s",
+        (user,)
+    )
     data = c.fetchall()
     conn.close()
 

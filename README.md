@@ -1,6 +1,6 @@
 # 💰 Smart Expense Tracker
 
-A fully deployed **full-stack expense tracking web application** built using **Flask, JavaScript, and SQLite**, designed to help users manage finances with real-time insights and intuitive analytics.
+A **production-ready full-stack expense tracking web application** built using **Flask, JavaScript, and PostgreSQL**, designed to help users manage finances with real-time insights and interactive analytics.
 
 ---
 
@@ -12,12 +12,12 @@ A fully deployed **full-stack expense tracking web application** built using **F
 
 ## 🚀 Highlights
 
-* ⚡ Real-time expense tracking with instant UI updates
-* 📊 Data visualization using **interactive Pie & Line Charts**
-* 🔐 Secure user authentication (Login / Signup system)
-* 📅 Monthly filtering for better financial insights
-* 📤 Export expenses as CSV for external use
-* 🌐 Fully deployed and accessible online
+* ⚡ Real-time expense tracking with instant UI updates (no page reloads)
+* 📊 Interactive analytics using Pie & Line Charts
+* 🔐 User authentication system (Login / Signup)
+* 📅 Month-wise filtering for better financial analysis
+* 📤 Export expenses as CSV
+* 🌐 Fully deployed on cloud infrastructure (Render)
 
 ---
 
@@ -27,21 +27,21 @@ A fully deployed **full-stack expense tracking web application** built using **F
 * 🏷️ Categorize expenses (Food, Travel, Shopping, etc.)
 * 📊 Category-wise breakdown (Pie Chart)
 * 📈 Monthly spending trends (Line Chart)
-* 🔄 Dynamic UI updates (no page reloads)
-* 💾 Persistent storage using SQLite
-* 🎨 Clean, responsive, and user-friendly interface
+* 🔄 Dynamic frontend updates using APIs
+* 💾 Persistent cloud storage using PostgreSQL
+* 🎨 Clean, responsive, and user-friendly UI
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer         | Technology            |
-| ------------- | --------------------- |
-| Frontend      | HTML, CSS, JavaScript |
-| Backend       | Flask (Python)        |
-| Database      | SQLite                |
-| Visualization | Chart.js              |
-| Deployment    | Render                |
+| Layer         | Technology                          |
+|--------------|-------------------------------------|
+| Frontend     | HTML, CSS, JavaScript               |
+| Backend      | Flask (Python)                      |
+| Database     | PostgreSQL (Production), SQLite (Local) |
+| Visualization| Chart.js                            |
+| Deployment   | Render (Cloud Platform)             |
 
 ---
 
@@ -97,27 +97,28 @@ smart-expense-tracker/
 ## 🧠 Key Learnings
 
 * Built a complete **full-stack application from scratch**
-* Handled **real-world deployment issues (local vs production)**
-* Implemented **dynamic frontend updates using APIs**
-* Worked with **data visualization (Chart.js)**
-* Understood **state management and debugging in production environments**
+* Implemented **RESTful APIs for dynamic frontend updates**
+* Integrated **data visualization using Chart.js**
+* Understood **real-world deployment challenges (SQLite → PostgreSQL migration)**
+* Learned **production debugging and cloud deployment workflows**
+* Worked with **persistent databases and environment variables**
 
 ---
 
 ## 🔮 Future Enhancements
 
-* 🔐 Password hashing & improved authentication security
-* 🗄️ Migration to PostgreSQL (production-ready database)
+* 🔐 Password hashing (bcrypt) for improved security
 * 📊 Advanced analytics (yearly trends, category insights)
-* 📱 Improved mobile responsiveness
+* 📱 Enhanced mobile responsiveness
 * 🌙 Dark mode support
+* 📦 Export data to PDF / Excel
 
 ---
 
 ## 👨‍💻 Author
 
-**Raghav Marda**
-B.Tech CSE Student
+**Raghav Marda**  
+B.Tech CSE Student  
 Focused on **Web Development & Cybersecurity**
 
 ---
@@ -126,8 +127,8 @@ Focused on **Web Development & Cybersecurity**
 
 If you found this project useful:
 
-👉 Star this repository
-👉 Share it on LinkedIn
-👉 Give feedback or suggestions
+👉 Star the repository  
+👉 Share it on LinkedIn  
+👉 Provide feedback or suggestions  
 
 ---
